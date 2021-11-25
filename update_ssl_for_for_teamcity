@@ -1,0 +1,24 @@
+echo %git_https%
+
+cat <<'EOF' > ./update_ssl.sh
+#!/bin/bash
+if [ -z "$1" ]
+then
+  echo "Please supply a subdomain to create a certificate for";
+  echo "e.g. mysite.localhost"
+  exit;
+fi
+DOMAIN=$1
+if [ $(echo $(curl -vs https://$DOMAIN 2>&1 | grep -c 'SSL certificate verify ok')) == '1' ];
+then 
+   echo 'HTTPS Connection successed'
+else 
+   echo 'HTTPS Connection broken, upgraging certs'
+   echo | openssl s_client -connect $DOMAIN:443 2>/dev/null | openssl x509 > ./$DOMAIN.pem
+   sudo mv ./$DOMAIN.pem /usr/share/ca-certificates/self_$DOMAIN.pem
+   sudo echo "self_$DOMAIN.pem" | sudo tee -a /etc/ca-certificates.conf
+   sudo update-ca-certificates
+   sudo service docker restart
+fi
+EOF
+chmod +x ./update_ssl.sh && ./update_ssl.sh %git_https%
