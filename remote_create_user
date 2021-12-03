@@ -1,0 +1,24 @@
+#!/bin/bash
+#run script with 2 parametrs
+backup_user=$1
+command_list=$2
+# The command must start with the character "/"
+# multiple commands must be comma separated
+#Example:
+#command_list="/usr/bin/docker images, /usr/bin/chown *"
+
+if [[ -z ${backup_user} ]];then echo "ERROR: user name not set"; exit; fi
+echo "USER: ${backup_user}"
+if [[ -z ${command_list} ]];then echo "ERROR: command not set"; exit; fi
+echo "COMMAND: ${command_list}"
+if [[ ${command_list:0:1} != "/" ]];then echo "ERROR: the command must start with the character \"/\""; exit; fi
+
+sudo sudo groupadd $backup_user && sudo usermod -aG $backup_user $(whoami)
+sudo useradd -m -g $backup_user -s /bin/bash $backup_user
+sudo su $backup_user -c 'mkdir ~/.ssh/ && chmod 0700 ~/.ssh'
+sudo su $backup_user -c 'cat <<'EOF' > ~/.ssh/authorized_keys
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCzG24bOGg8E28Qe4WTfdhKXiNib4EGpdnMkk0bu0an7jSx0donAhSaAo1gBfsFE46WyUB6PCfqomioNJxO4k3cge3iUjk6L6WBnof6UzgWaz6n/n1HK5KLXFpd2M+qwne9tRNkRR3mC6gEmwXa4c8NiDT+ZZW2KoJ1QNCIm0g7ElQdHRrFpocYYM9BEzLiHAmZCDFu188PXxEQW4QC53SxKSLhwla4xEFoyY51v03xCYY1CJ9z16K4gDuQskOB0q0VjpKyDgIuQ6qzyeC2/Wa0teM7xe47jjBAIHclBWr0BdUnYJ/uyUxpe6DjRue68bG8yRSSWNRUPgCV3yeJ0zibwaOTF0eXorGzNoe+gwxjmoYzf/NWLRdeXCyVGTyOAV3RSdXzdj0o9l9Vhl4jyuFXRG6dey1uqdbuDzcil5AuEBI8H6OIC7mvYn6Qy541UXS9J0AiVi7xrO586JkpWJSWdWzEknG+J2N4kH6vc8TroKMEAfqZzKdKnnzrBuxFWLU=
+EOF'
+sudo su $backup_user -c 'chmod 0600 ~/.ssh/authorized_keys'
+sudo su $backup_user -c 'mkdir ~/backup && chmod -R 0770 ~/backup && chmod g+rw ~/backup'
+sudo echo "$backup_user ALL=(ALL) NOPASSWD: ${command_list}" > /etc/sudoers.d/$backup_user
