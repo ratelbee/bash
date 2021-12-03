@@ -54,11 +54,11 @@ cat $json_state_file_path/$json_state_filename | jq --arg step_id $step_id '.cur
 EOF
 #STATE SUCCESS
 cat <<'EOF' > $script_storage_path/state_success.sh
-cat $json_state_file_path/$json_state_filename | jq --arg step_id $step_id '.current_step = ($step_id | tonumber)' | jq --arg step_id $step_id '.'step_${step_id}' = 1'  > $json_state_file_path/tmp && mv $json_state_file_path/tmp $json_state_file_path/$json_state_filename
+cat $json_state_file_path/$json_state_filename | jq --arg step_id $step_id '.'step_${step_id}' = 1'  > $json_state_file_path/tmp && mv $json_state_file_path/tmp $json_state_file_path/$json_state_filename
 EOF
 #STATE ERROR
 cat <<'EOF' > $script_storage_path/state_error.sh
-cat $json_state_file_path/$json_state_filename | jq --arg step_id $step_id '.current_step = ($step_id | tonumber)' | jq --arg step_id $step_id '.'step_${step_id}' = 2'  > $json_state_file_path/tmp && mv $json_state_file_path/tmp $json_state_file_path/$json_state_filename
+cat $json_state_file_path/$json_state_filename | jq --arg step_id $step_id '.'step_${step_id}' = 2'  > $json_state_file_path/tmp && mv $json_state_file_path/tmp $json_state_file_path/$json_state_filename
 EOF
 chmod +x $script_storage_path/*
 
