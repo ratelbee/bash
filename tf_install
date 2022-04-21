@@ -1,0 +1,30 @@
+#!/bin/bash
+
+MC_URL=https://minio.net/pub/minctl
+PROV_PATH=~/.terraform.d/plugins/smis
+S3_NAME=deploy
+S3_ENDPOINT=https://minio.net
+S3_TOKEN=token
+S3_KEY=key
+PROV_LIST=( nomad template consul docker )
+
+# Minio Client
+curl -O $MC_URL
+sudo minctl /usr/local/bin/
+sudo chmod +x /usr/local/bin/minctl
+minctl -v
+
+# Config bucket
+minctl alias set $S3_NAME $S3_ENDPOINT $S3_TOKEN $S3_KEY
+
+# Terraform
+sudo minctl cp yc-deploy/hashicorp/tf/bin/terraform /usr/local/bin/
+sudo chmod +x /usr/local/bin/terraform
+terraform version
+
+# Terraform providers
+
+for PROV in ${PROV_LIST[*]};do
+	minctl cp -r yc-deploy/hashicorp/tf/providers/$PROV $PROV_PATH
+	echo $PROV
+done
